@@ -936,3 +936,64 @@ VCL – ``vcl_recv``
 
 .. TOFIX: Here there is an empty page in slides
 .. Look at util/strip-class.gawk
+
+Revisiting built-in ``vcl_recv``
+................................
+
+.. include:: vcl/default-vcl_recv.vcl
+   :literal:
+   
+   
+   
+VCL – ``vcl_backend_response``
+------------------------------
+
+- Override cache time for certain URLs
+- Strip ``Set-Cookie`` header fields that are not needed
+- Strip bugged ``Vary`` header fields
+- Add helper-headers to the object for use in banning (more information in later sections)
+- Sanitize server response
+- Override cache duration
+- Apply other caching policies
+
+.. container:: handout
+
+   `Figure 24 <#figure-24>`_ shows that ``vcl_backend_response`` may terminate with one of the following actions: *deliver*, *abandon*, or *retry*.
+   The *deliver* terminating action may or may not insert the object into the cache depending on the response of the backend.
+
+   Backends might respond with a ``304`` HTTP headers.
+   ``304`` responses happen when the requested object has not been modified since the timestamp ``If-Modified-Since`` in the HTTP header.
+   If the request hits a non fresh object (see `Figure 2 <#figure-2>`_), Varnish adds the ``If-Modified-Since`` header with the value of ``t_origin`` to the request and sends it to the backend.
+
+   ``304`` responses do not contain a message body.
+   Thus, Varnish builds the response using the body from cache.
+   ``304`` responses update the attributes of the cached object.
+
+``vcl_backend_response``
+........................
+
+**built-in vcl_backend_response**
+
+.. include:: vcl/default-vcl_backend_response.vcl
+   :literal:
+
+.. container:: handout
+
+   The ``vcl_backend_response`` built-in subroutine is designed to avoid caching in conditions that are most probably undesired.
+   For example, it avoids caching responses with cookies, i.e., responses with ``Set-Cookie`` HTTP header field.
+   This built-in subroutine also avoids *request serialization* described in the `Waiting State`_ section.
+
+   To avoid *request serialization*, ``beresp.uncacheable`` is set to ``true``, which in turn creates a ``hit-for-pass`` object.
+   The `hit-for-pass`_ section explains in detail this object type.
+
+   If you still decide to skip the built-in ``vcl_backend_response`` subroutine by having your own and returning ``deliver``, be sure to **never** set ``beresp.ttl`` to ``0``.
+   If you skip the built-in subroutine and set ``0`` as TTL value, you are effectively removing objects from cache that could eventually be used to avoid *request serialization*.
+
+   .. note::
+
+      Varnish 3.x has a *hit_for_pass* return action.
+      In Varnish 4, this action is achieved by setting ``beresp.uncacheable`` to ``true``.
+      The `hit-for-pass`_ section explains this in more detail.
+
+.. TOFIX: Here there is an empty page in slides
+.. Look at util/strip-class.gawk
