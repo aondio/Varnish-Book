@@ -17,21 +17,6 @@
 
 .. class:: heading1
 
-Introduction
-============
-
-Table of contents:
-
-- What is Varnish?
-- Benefits of Varnish
-- Open source / Free software
-- Varnish Software: The company
-- What is Varnish Plus?
-- Varnish: more than a cache server
-- History of Varnish
-- Varnish Governance Board (VGB)
-
-.. TODO Comparison of related software solutions such as: Apache mod_security, Squid, Nginx, and Apache Traffic Server (ATS) (reverse and forward proxy, generally comparable to Nginx and Squid).
 HTTP
 ====
 
@@ -267,6 +252,22 @@ HTTP Properties
     RFC7231 specifies ``GET``, ``HEAD`` and ``POST`` as cacheable.
     However, responses from ``POST`` are very rarely treated as cacheable.
     [https://tools.ietf.org/html/rfc7231#section-4.2]
+
+Introduction
+============
+
+Table of contents:
+
+- What is Varnish?
+- Benefits of Varnish
+- Open source / Free software
+- Varnish Software: The company
+- What is Varnish Plus?
+- Varnish: more than a cache server
+- History of Varnish
+- Varnish Governance Board (VGB)
+
+.. TODO Comparison of related software solutions such as: Apache mod_security, Squid, Nginx, and Apache Traffic Server (ATS) (reverse and forward proxy, generally comparable to Nginx and Squid).
 
 
 What is Varnish?
