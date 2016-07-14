@@ -251,8 +251,8 @@ HTTP Properties
     However, responses from ``POST`` are very rarely treated as cacheable.
     [https://tools.ietf.org/html/rfc7231#section-4.2]
 
-Introduction
-============
+Introduction to Varnish Cache and Varnish Software
+==================================================
 
 Table of contents:
 
@@ -260,7 +260,6 @@ Table of contents:
 - Open source / Free software
 - Varnish Software: The company
 - What is Varnish Plus?
-- What is Varnish?
 - Varnish: more than a cache server
 - History of Varnish
 - Varnish Governance Board (VGB)
@@ -380,6 +379,8 @@ Varnish Cache and Varnish Software Timeline
    As of November 2015, the VGB positions are filled by Poul-Henning Kamp (Architect), Rogier Mulhuijzen (Community) and Lasse Karstensen (Varnish Software).
    On a day-to-day basis, there is little need to interfere with the general flow of development.
 
+Description of Varnish Cache
+============================
 
 What is Varnish?
 ----------------
@@ -463,14 +464,12 @@ Utility programs part of the Varnish distribution:
 
    The central block of Varnish is the Varnish daemon ``varnishd``.
    This daemon accepts HTTP requests from clients, sends requests to a backend, caches the returned objects and replies to the client request.
-   ``varnishd`` is further explained in the `Varnish Architecture`_ section.
 
    .. varnishtest
 
    ``varnishtest`` is a script driven program used to test your Varnish installation.
    ``varnishtest`` is very powerful because it allows you to create client mock-ups, fetch content from mock-up or real backends, interact with your actual Varnish configuration, and assert the expected behavior.
    ``varnishtest`` is also very useful to learn more about the behavior of Varnish.
-   Therefore, ``varnishtest`` is used throughout the book as main testbed.
 
    .. varnishadm
 
@@ -485,26 +484,39 @@ Utility programs part of the Varnish distribution:
    - view the most up-to-date documentation for parameters, and
    - more.
 
-   `The Management Interface varnishadm`_ section explains in more detail this utility.
-
    .. varnishlog
 
    The Varnish log provides large amounts of information, thus it is usually necessary to filter it.
    For example, "show me only what matches X".
    ``varnishlog`` does precisely that.
-   You will learn more about ``varnishlog`` in the `Examining Varnish Server's Output`_ chapter.
 
    .. varnishstat
 
    ``varnishstat`` is used to access **global counters**.
    It provides overall statistics, e.g the number of total requests, number of objects, and more.
    ``varnishstat`` is particularly useful when using it together with ``varnishlog`` to analyze your Varnish installation.
-   The `varnishstat`_ section explains in detail this utility.
 
    .. others
 
    In addition, there are other utility programs such as ``varnishncsa``, ``varnishtop`` and ``varnishhist``.
-   `Appendix B: Varnish Programs`_ explains them.
+
+Vocabulary
+----------
+
+- Client: A client is a computer program that, as part of its operation, relies on sending a request to another computer program (which may or may not be located on another computer). For example, web browsers are clients that connect to web servers and retrieve web pages for display.(wikipedia) 
+- Server: In computing, a server is a computer program or a device that provides functionality for other programs or devices, called "clients".(wikipedia)
+- Backend: origin server
+- Object(in Varnish):
+	- Object: local store of HTTP response message
+	- Objects in Varnish are stored in memory and addressed by hash keys
+	- You can control the hashing
+
+.. container:: handout
+
+	`Objects` are local stores of response messages as defined in https://tools.ietf.org/html/rfc7234.
+	They are mapped with a hash key and they are stored in memory.
+	References to objects in memory are kept in a hash tree.
+
 
 Exercise: Install Varnish
 -------------------------
