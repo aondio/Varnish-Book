@@ -20,8 +20,6 @@
 HTTP
 ====
 
-*This chapter is for the web-developer course only*
-
 This chapter covers:
 
 - Protocol basics
@@ -48,8 +46,8 @@ Protocol Basics
    Figure :counter:`figure`: HTTP request/response control flow diagram
 
 - Hyper-Text Transfer Protocol, HTTP, is at the core of the web
-- Specified by the IETF, there are two main versions: HTTP/1.1 and HTTP/2
-- Varnish 4.0 supports HTTP/1.1
+- Specified by the IETF, there are two main versions: HTTP/1.1 and HTTP/2(HTTP/0.9 and HTTP/1.0 deprecated now)
+- Varnish 4.0 supports HTTP/1.1 and HTTP/1.0
 
 .. container:: handout
 
