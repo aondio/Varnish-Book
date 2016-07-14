@@ -32,6 +32,242 @@ Table of contents:
 - Varnish Governance Board (VGB)
 
 .. TODO Comparison of related software solutions such as: Apache mod_security, Squid, Nginx, and Apache Traffic Server (ATS) (reverse and forward proxy, generally comparable to Nginx and Squid).
+HTTP
+====
+
+*This chapter is for the web-developer course only*
+
+This chapter covers:
+
+- Protocol basics
+- Requests and responses
+- HTTP request/response control flow
+- Statelessness and idempotence
+- Cache related headers
+
+.. container:: handout
+
+   Varnish is designed to be used with HTTP semantics.
+   These semantics are specified in the version called HTTP/1.1.
+   This chapter covers the basics of HTTP as a protocol, its semantics and the caching header fields most commonly used.
+
+Protocol Basics
+---------------
+
+.. figure 17
+
+.. figure:: ui/img/httprequestflow.png
+   :align: center
+   :width: 100%
+
+   Figure :counter:`figure`: HTTP request/response control flow diagram
+
+- Hyper-Text Transfer Protocol, HTTP, is at the core of the web
+- Specified by the IETF, there are two main versions: HTTP/1.1 and HTTP/2
+- Varnish 4.0 supports HTTP/1.1
+
+.. container:: handout
+
+   HTTP is a networking protocol for distributed systems.
+   It is the foundation of data communication for the web. 
+   The development of this standard is done by the IETF and the W3C.
+   In 2014, RFCs 723X were published to clarify HTTP/1.1 and they obsolete RFC 2616.
+
+   A new version of HTTP called HTTP/2 has been released under RFC 7540.
+   HTTP/2 is an alternative to HTTP/1.1 and does not obsolete the HTTP/1.1 message syntax.
+   HTTP's existing semantics remain unchanged.
+
+   The protocol allows multiple requests to be sent in serial mode over a single connection.
+   If a client wants to fetch resources in parallel, it must open multiple connections.
+
+Resources and Representations
+.............................
+
+- Resource: target of an HTTP request
+- A resource may have different representations
+- Representation: a particular instantiation of a resource
+- A representation may have different states: past, current and desired
+
+.. container:: handout
+
+   Each resource is identified by a Uniform Resource Identifier (URI), as described in Section 2.7 of [RFC7230].
+   A resource can be anything and such a thing can have different representations.
+   A representation is an instantiation of a resource.
+   An origin server, a.k.a. backend,  produces this instantiation based on a list of request field headers, e.g., ``User-Agent`` and ``Accept-encoding``.
+
+   When an origin server produces different representations of one resource, it includes a ``Vary`` response header field.
+   This response header field is used by Varnish to differentiate between resource variations.
+   More details on this are in the `Vary`_ subsection.
+
+   An origin server might include metadata to reflect the state of a representation.
+   This metadata is contained in the validator header fields ``ETag`` and ``Last-Modified``.
+
+   In order to construct a response for a client request, an algorithm is used to evaluate and select one representation with a particular state.
+   This algorithm is implemented in Varnish and you can customize it in your VCL code.
+   Once a representation is selected, the payload for a 200 (OK) or 304 (Not Modified) response can be constructed.
+
+Requests and Responses
+......................
+
+- A request is a message from a client to a server that includes the method to be applied to a requested resource, the identifier of the resource, the protocol version in use and an optional message body
+- A method is a token that indicates the method to be performed on a URI
+- Standard request methods are: ``GET``, ``POST``, ``HEAD``, ``OPTIONS``, ``PUT``, ``DELETE``, ``TRACE``, or ``CONNECT``
+- Examples of URIs are ``/img/image.png`` or ``/index.html``
+- Header fields are allowed in requests and responses
+- Header fields allow client and servers to pass additional information
+- A response is a message from a server to a client that consists of a response status, headers and an optional message body
+
+.. container:: handout
+
+   .. Requests
+
+   The first line of a request message is called `Request-Line`, whereas the first line of a response message is called `Status-Line`.
+   The Request-Line begins with a method token, followed by the requested resource (URI) and the protocol version.
+
+   .. Methods
+
+   A request method informs the web server what sort of request this is:
+   Is the client trying to fetch a resource (``GET``), update some data (``POST``) at the backend, or just get the headers of a resource (``HEAD``)?
+   Methods are case-sensitive.
+
+   .. Headers 
+
+   After the Request-Line, request messages may have an arbitrary number of header fields.
+   For example: ``Accept-Language``, ``Cookie``, ``Host`` and ``User-Agent``.
+
+   .. Message Bodies and Responses
+
+   Message bodies are optional but they must comply to the requested method.
+   For instance, a ``GET`` request should not contain a request body, but a ``POST`` request may contain one.
+   Similarly, a web server cannot attach a message body to the response of a ``HEAD`` request.
+
+   .. Responses
+
+   The Status-Line of a response message consists of the protocol version followed by a numeric status code and its associated textual phrase.
+   This associated textual phrase is also called `reason`.
+   Important is to know that the reason is intended for the human user.
+   That means that the client is not required to examine the reason, as it may change and it should not affect the protocol.
+   Examples of status codes with their reasons are: ``200 OK``, ``404 File Not Found`` and ``304 Not Modified``.
+
+   Responses also include header fields after the Status-Line, which allow the server to pass additional information about the response.
+   Examples of response header fields are: ``Age``, ``ETag``, ``Cache-Control`` and ``Content-Length``.
+
+   .. note::
+
+      Requests and responses share the same syntax for headers and message body, but some headers are request- or response-specific.
+
+Request Example
+...............
+
+::
+
+    GET / HTTP/1.1
+    Host: localhost
+    User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; fr; rv:1.9.2.16) \
+    Gecko/20110319 Firefox/3.6.16
+    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+    Accept-Language: fr,fr-fr;q=0.8,en-us;q=0.5,en;q=0.3
+    Accept-Encoding: gzip,deflate
+    Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+    Keep-Alive: 115
+    Connection: keep-alive
+    Cache-Control: max-age=0
+
+.. container:: handout
+
+   The above example is a typical HTTP request that includes a Request-Line, and headers, but no message body.
+   The Request-Line consists of the ``GET`` request for the ``/`` resource and the ``HTTP/1.1`` version.
+   The request includes the header fields ``Host``, ``User-Agent``, ``Accept``, ``Accept-Language``, ``Accept-Encoding``, ``Accept-Charset``, ``Keep-Alive``, ``Connection`` and ``Cache-Control``.
+
+   Note that the ``Host`` header contains the hostname as seen by the browser.
+   The above request was generated by entering http://localhost/ in the browser.
+   Most browsers automatically add a number of headers.
+
+   Some of the headers will vary depending on the configuration and state of the client.
+   For example, language settings, cached content, forced refresh, etc.
+   Whether the server honors these headers will depend on both the server in question and the specific header.
+
+   The following is an example of an HTTP request using the ``POST`` method, which includes a message body::
+
+     POST /accounts/ServiceLoginAuth HTTP/1.1
+     Host: www.google.com
+     User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; fr; rv:1.9.2.16) \
+     Gecko/20110319 Firefox/3.6.16
+     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+     Accept-Language: fr,fr-fr;q=0.8,en-us;q=0.5,en;q=0.3
+     Accept-Encoding: gzip,deflate
+     Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+     Keep-Alive: 115
+     Connection: keep-alive
+     Referer: https://www.google.com/accounts/ServiceLogin
+     Cookie: GoogleAccountsLocale_session=en;[...]
+     Content-Type: application/x-www-form-urlencoded
+     Content-Length: 288
+
+     ltmpl=default[...]&signIn=Sign+in&asts=
+
+Response Example
+................
+
+::
+
+    HTTP/1.1 200 OK
+    Server: Apache/2.2.14 (Ubuntu)
+    X-Powered-By: PHP/5.3.2-1ubuntu4.7
+    Cache-Control: public, max-age=86400
+    Last-Modified: Mon, 04 Apr 2011 04:13:41 +0000
+    Expires: Sun, 11 Mar 1984 12:00:00 GMT
+    Vary: Cookie,Accept-Encoding
+    ETag: "1301890421"
+    Content-Type: text/html; charset=utf-8
+    Content-Length: 23562
+    Date: Mon, 04 Apr 2011 09:02:26 GMT
+    X-Varnish: 1886109724 1886107902
+    Age: 17324
+    Via: 1.1 varnish
+    Connection: keep-alive
+
+    [data]
+
+.. container:: handout
+
+   The example above is an HTTP response that contains a Status-Line, headers and message body.
+   The Status-Line consists of the ``HTTP/1.1`` version, the status code ``200`` and the reason ``OK``.
+   The response status code informs the client (browser) whether the server understood the request and how it replied to it.
+   These codes are fully defined in https://tools.ietf.org/html/rfc2616#section-10, but here is an overview of them:
+
+   - 1xx: Informational – Request received, continuing process
+   - 2xx: Success – The action was successfully received, understood, and accepted
+   - 3xx: Redirection – Further action must be taken in order to complete the request
+   - 4xx: Client Error – The request contains bad syntax or cannot be fulfilled
+   - 5xx: Server Error –  The server failed to fulfill an apparently valid request
+
+HTTP Properties
+---------------
+
+- HTTP is a stateless protocol
+- Properties of methods: safe, idempotent and **cacheable**
+- Most common cacheable request methods are ``GET`` and ``HEAD``
+
+.. container:: handout
+
+    HTTP is by definition a stateless protocol meaning that each request message can be understood in isolation.
+    Hence, a server MUST NOT assume that two requests on the same connection are from the same user agent unless the connection is secured and specific to that agent.
+    
+    HTTP/1.1 persists connections by default.
+    This is contrary to most implementations of HTTP/1.0, where each connection is established by the client prior to the request and closed by the server after sending the response.
+    Therefore, for compatibility reasons, persistent connections may be explicitly negotiated as they are not the default behavior in HTTP/1.0 [https://tools.ietf.org/html/rfc7230#appendix-A.1.2].
+    In practice, there is a header called ``Keep-Alive`` you may use if you want to control the connection persistence between the client and the server.
+
+    Safe methods are considered "safe" if they are read-only; i.e., the client request does not alter any state on the server.
+    ``GET``, ``HEAD``, ``OPTIONS``, and ``TRACE`` methods are defined to be safe.
+    An `idempotent` method is such that multiple identical requests have the same effect as a single request.
+    ``PUT``, ``DELETE`` and safe requests methods are idempotent.
+    **Cacheable methods** are those that allow to store their responses for future reuse.
+    RFC7231 specifies ``GET``, ``HEAD`` and ``POST`` as cacheable.
+    However, responses from ``POST`` are very rarely treated as cacheable.
+    [https://tools.ietf.org/html/rfc7231#section-4.2]
+
 
 What is Varnish?
 ----------------
@@ -402,241 +638,6 @@ Test Varnish Using Apache as Backend
    The ``X-Varnish`` HTTP header field contains the Varnish Transaction ID (VXID) of the client request and if applicable, the VXID of the backend transaction that stored in cache the object delivered.
    ``X-Varnish`` is useful to find the correct log entries in the Varnish log.
    For a cache hit, ``X-Varnish`` contains both the ID of the current request and the ID of the request that populated the cache.
-HTTP
-====
-
-*This chapter is for the web-developer course only*
-
-This chapter covers:
-
-- Protocol basics
-- Requests and responses
-- HTTP request/response control flow
-- Statelessness and idempotence
-- Cache related headers
-
-.. container:: handout
-
-   Varnish is designed to be used with HTTP semantics.
-   These semantics are specified in the version called HTTP/1.1.
-   This chapter covers the basics of HTTP as a protocol, its semantics and the caching header fields most commonly used.
-
-Protocol Basics
----------------
-
-.. figure 17
-
-.. figure:: ui/img/httprequestflow.png
-   :align: center
-   :width: 100%
-
-   Figure :counter:`figure`: HTTP request/response control flow diagram
-
-- Hyper-Text Transfer Protocol, HTTP, is at the core of the web
-- Specified by the IETF, there are two main versions: HTTP/1.1 and HTTP/2
-- Varnish 4.0 supports HTTP/1.1
-
-.. container:: handout
-
-   HTTP is a networking protocol for distributed systems.
-   It is the foundation of data communication for the web. 
-   The development of this standard is done by the IETF and the W3C.
-   In 2014, RFCs 723X were published to clarify HTTP/1.1 and they obsolete RFC 2616.
-
-   A new version of HTTP called HTTP/2 has been released under RFC 7540.
-   HTTP/2 is an alternative to HTTP/1.1 and does not obsolete the HTTP/1.1 message syntax.
-   HTTP's existing semantics remain unchanged.
-
-   The protocol allows multiple requests to be sent in serial mode over a single connection.
-   If a client wants to fetch resources in parallel, it must open multiple connections.
-
-Resources and Representations
-.............................
-
-- Resource: target of an HTTP request
-- A resource may have different representations
-- Representation: a particular instantiation of a resource
-- A representation may have different states: past, current and desired
-
-.. container:: handout
-
-   Each resource is identified by a Uniform Resource Identifier (URI), as described in Section 2.7 of [RFC7230].
-   A resource can be anything and such a thing can have different representations.
-   A representation is an instantiation of a resource.
-   An origin server, a.k.a. backend,  produces this instantiation based on a list of request field headers, e.g., ``User-Agent`` and ``Accept-encoding``.
-
-   When an origin server produces different representations of one resource, it includes a ``Vary`` response header field.
-   This response header field is used by Varnish to differentiate between resource variations.
-   More details on this are in the `Vary`_ subsection.
-
-   An origin server might include metadata to reflect the state of a representation.
-   This metadata is contained in the validator header fields ``ETag`` and ``Last-Modified``.
-
-   In order to construct a response for a client request, an algorithm is used to evaluate and select one representation with a particular state.
-   This algorithm is implemented in Varnish and you can customize it in your VCL code.
-   Once a representation is selected, the payload for a 200 (OK) or 304 (Not Modified) response can be constructed.
-
-Requests and Responses
-......................
-
-- A request is a message from a client to a server that includes the method to be applied to a requested resource, the identifier of the resource, the protocol version in use and an optional message body
-- A method is a token that indicates the method to be performed on a URI
-- Standard request methods are: ``GET``, ``POST``, ``HEAD``, ``OPTIONS``, ``PUT``, ``DELETE``, ``TRACE``, or ``CONNECT``
-- Examples of URIs are ``/img/image.png`` or ``/index.html``
-- Header fields are allowed in requests and responses
-- Header fields allow client and servers to pass additional information
-- A response is a message from a server to a client that consists of a response status, headers and an optional message body
-
-.. container:: handout
-
-   .. Requests
-
-   The first line of a request message is called `Request-Line`, whereas the first line of a response message is called `Status-Line`.
-   The Request-Line begins with a method token, followed by the requested resource (URI) and the protocol version.
-
-   .. Methods
-
-   A request method informs the web server what sort of request this is:
-   Is the client trying to fetch a resource (``GET``), update some data (``POST``) at the backend, or just get the headers of a resource (``HEAD``)?
-   Methods are case-sensitive.
-
-   .. Headers 
-
-   After the Request-Line, request messages may have an arbitrary number of header fields.
-   For example: ``Accept-Language``, ``Cookie``, ``Host`` and ``User-Agent``.
-
-   .. Message Bodies and Responses
-
-   Message bodies are optional but they must comply to the requested method.
-   For instance, a ``GET`` request should not contain a request body, but a ``POST`` request may contain one.
-   Similarly, a web server cannot attach a message body to the response of a ``HEAD`` request.
-
-   .. Responses
-
-   The Status-Line of a response message consists of the protocol version followed by a numeric status code and its associated textual phrase.
-   This associated textual phrase is also called `reason`.
-   Important is to know that the reason is intended for the human user.
-   That means that the client is not required to examine the reason, as it may change and it should not affect the protocol.
-   Examples of status codes with their reasons are: ``200 OK``, ``404 File Not Found`` and ``304 Not Modified``.
-
-   Responses also include header fields after the Status-Line, which allow the server to pass additional information about the response.
-   Examples of response header fields are: ``Age``, ``ETag``, ``Cache-Control`` and ``Content-Length``.
-
-   .. note::
-
-      Requests and responses share the same syntax for headers and message body, but some headers are request- or response-specific.
-
-Request Example
-...............
-
-::
-
-    GET / HTTP/1.1
-    Host: localhost
-    User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; fr; rv:1.9.2.16) \
-    Gecko/20110319 Firefox/3.6.16
-    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-    Accept-Language: fr,fr-fr;q=0.8,en-us;q=0.5,en;q=0.3
-    Accept-Encoding: gzip,deflate
-    Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
-    Keep-Alive: 115
-    Connection: keep-alive
-    Cache-Control: max-age=0
-
-.. container:: handout
-
-   The above example is a typical HTTP request that includes a Request-Line, and headers, but no message body.
-   The Request-Line consists of the ``GET`` request for the ``/`` resource and the ``HTTP/1.1`` version.
-   The request includes the header fields ``Host``, ``User-Agent``, ``Accept``, ``Accept-Language``, ``Accept-Encoding``, ``Accept-Charset``, ``Keep-Alive``, ``Connection`` and ``Cache-Control``.
-
-   Note that the ``Host`` header contains the hostname as seen by the browser.
-   The above request was generated by entering http://localhost/ in the browser.
-   Most browsers automatically add a number of headers.
-
-   Some of the headers will vary depending on the configuration and state of the client.
-   For example, language settings, cached content, forced refresh, etc.
-   Whether the server honors these headers will depend on both the server in question and the specific header.
-
-   The following is an example of an HTTP request using the ``POST`` method, which includes a message body::
-
-     POST /accounts/ServiceLoginAuth HTTP/1.1
-     Host: www.google.com
-     User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; fr; rv:1.9.2.16) \
-     Gecko/20110319 Firefox/3.6.16
-     Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-     Accept-Language: fr,fr-fr;q=0.8,en-us;q=0.5,en;q=0.3
-     Accept-Encoding: gzip,deflate
-     Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
-     Keep-Alive: 115
-     Connection: keep-alive
-     Referer: https://www.google.com/accounts/ServiceLogin
-     Cookie: GoogleAccountsLocale_session=en;[...]
-     Content-Type: application/x-www-form-urlencoded
-     Content-Length: 288
-
-     ltmpl=default[...]&signIn=Sign+in&asts=
-
-Response Example
-................
-
-::
-
-    HTTP/1.1 200 OK
-    Server: Apache/2.2.14 (Ubuntu)
-    X-Powered-By: PHP/5.3.2-1ubuntu4.7
-    Cache-Control: public, max-age=86400
-    Last-Modified: Mon, 04 Apr 2011 04:13:41 +0000
-    Expires: Sun, 11 Mar 1984 12:00:00 GMT
-    Vary: Cookie,Accept-Encoding
-    ETag: "1301890421"
-    Content-Type: text/html; charset=utf-8
-    Content-Length: 23562
-    Date: Mon, 04 Apr 2011 09:02:26 GMT
-    X-Varnish: 1886109724 1886107902
-    Age: 17324
-    Via: 1.1 varnish
-    Connection: keep-alive
-
-    [data]
-
-.. container:: handout
-
-   The example above is an HTTP response that contains a Status-Line, headers and message body.
-   The Status-Line consists of the ``HTTP/1.1`` version, the status code ``200`` and the reason ``OK``.
-   The response status code informs the client (browser) whether the server understood the request and how it replied to it.
-   These codes are fully defined in https://tools.ietf.org/html/rfc2616#section-10, but here is an overview of them:
-
-   - 1xx: Informational – Request received, continuing process
-   - 2xx: Success – The action was successfully received, understood, and accepted
-   - 3xx: Redirection – Further action must be taken in order to complete the request
-   - 4xx: Client Error – The request contains bad syntax or cannot be fulfilled
-   - 5xx: Server Error –  The server failed to fulfill an apparently valid request
-
-HTTP Properties
----------------
-
-- HTTP is a stateless protocol
-- Properties of methods: safe, idempotent and **cacheable**
-- Most common cacheable request methods are ``GET`` and ``HEAD``
-
-.. container:: handout
-
-    HTTP is by definition a stateless protocol meaning that each request message can be understood in isolation.
-    Hence, a server MUST NOT assume that two requests on the same connection are from the same user agent unless the connection is secured and specific to that agent.
-    
-    HTTP/1.1 persists connections by default.
-    This is contrary to most implementations of HTTP/1.0, where each connection is established by the client prior to the request and closed by the server after sending the response.
-    Therefore, for compatibility reasons, persistent connections may be explicitly negotiated as they are not the default behavior in HTTP/1.0 [https://tools.ietf.org/html/rfc7230#appendix-A.1.2].
-    In practice, there is a header called ``Keep-Alive`` you may use if you want to control the connection persistence between the client and the server.
-
-    Safe methods are considered "safe" if they are read-only; i.e., the client request does not alter any state on the server.
-    ``GET``, ``HEAD``, ``OPTIONS``, and ``TRACE`` methods are defined to be safe.
-    An `idempotent` method is such that multiple identical requests have the same effect as a single request.
-    ``PUT``, ``DELETE`` and safe requests methods are idempotent.
-    **Cacheable methods** are those that allow to store their responses for future reuse.
-    RFC7231 specifies ``GET``, ``HEAD`` and ``POST`` as cacheable.
-    However, responses from ``POST`` are very rarely treated as cacheable.
-    [https://tools.ietf.org/html/rfc7231#section-4.2]
 
 
 VCL Basics
