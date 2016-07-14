@@ -256,78 +256,16 @@ Introduction
 
 Table of contents:
 
-- What is Varnish?
 - Benefits of Varnish
 - Open source / Free software
 - Varnish Software: The company
 - What is Varnish Plus?
+- What is Varnish?
 - Varnish: more than a cache server
 - History of Varnish
 - Varnish Governance Board (VGB)
 
 .. TODO Comparison of related software solutions such as: Apache mod_security, Squid, Nginx, and Apache Traffic Server (ATS) (reverse and forward proxy, generally comparable to Nginx and Squid).
-
-
-What is Varnish?
-----------------
-
-.. figure 1
-
-.. figure:: ui/img/reverse_proxy.svg
-   :alt: Reverse Proxy
-   :align: center
-   :width: 50%
-
-   Figure :counter:`figure`: Varnish is more than a reverse proxy
-
-.. container:: handout
-
-   .. What is Varnish?:
-
-   Varnish is a reverse HTTP proxy, sometimes referred to as an HTTP accelerator or a web accelerator.
-   A reverse proxy is a proxy server that appears to clients as an ordinary server.
-   Varnish stores (caches) files or fragments of files in memory that are used to reduce the response time and network bandwidth consumption on future, equivalent requests.
-   Varnish is designed for modern hardware, modern operating systems and modern work loads.
-
-   .. Varnish use
-   
-   Varnish is more than a reverse HTTP proxy that caches content to speed up your server.
-   Depending on the installation, Varnish can also be used as:
-
-   - web application firewall,
-   - DDoS attack defender,
-   - load balancer,
-   - integration point,
-   - single sign-on gateway,
-   - authentication and authorization policy mechanism,
-   - quick fix for unstable backends, and
-   - HTTP router.
-
-Varnish is Flexible
-...................
-
-Example of Varnish Configuration Language (**VCL**)::
-
-      vcl 4.0;
-
-      backend default {
-	  .host = "127.0.0.1";
-	  .port = "8080";
-      }
-
-      sub vcl_recv {
-	  # Do request header transformations here.
-	  if (req.url ~ "^/admin") {
-	      return(pass);
-	  }
-      }
-
-.. container:: handout
-
-   Varnish is flexible because you can configure it and write your own caching policies in its Varnish Configuration Language (VCL).
-   VCL is a domain specific language based on C.
-   VCL is then translated to C code and compiled, therefore Varnish executes lightning fast.
-   Varnish has shown itself to work well both on large (and expensive) servers and tiny appliances.
 
 Varnish Cache and Varnish Plus
 ------------------------------
@@ -441,6 +379,68 @@ Varnish Cache and Varnish Software Timeline
    
    As of November 2015, the VGB positions are filled by Poul-Henning Kamp (Architect), Rogier Mulhuijzen (Community) and Lasse Karstensen (Varnish Software).
    On a day-to-day basis, there is little need to interfere with the general flow of development.
+
+
+What is Varnish?
+----------------
+
+.. figure 1
+
+.. figure:: ui/img/reverse_proxy.svg
+   :alt: Reverse Proxy
+   :align: center
+   :width: 50%
+
+   Figure :counter:`figure`: Varnish is more than a reverse proxy
+
+.. container:: handout
+
+   .. What is Varnish?:
+
+   Varnish is a reverse HTTP proxy, sometimes referred to as an HTTP accelerator or a web accelerator.
+   A reverse proxy is a proxy server that appears to clients as an ordinary server.
+   Varnish stores (caches) files or fragments of files in memory that are used to reduce the response time and network bandwidth consumption on future, equivalent requests.
+   Varnish is designed for modern hardware, modern operating systems and modern work loads.
+
+   .. Varnish use
+   
+   Varnish is more than a reverse HTTP proxy that caches content to speed up your server.
+   Depending on the installation, Varnish can also be used as:
+
+   - web application firewall,
+   - DDoS attack defender,
+   - load balancer,
+   - integration point,
+   - single sign-on gateway,
+   - authentication and authorization policy mechanism,
+   - quick fix for unstable backends, and
+   - HTTP router.
+
+Varnish is Flexible
+...................
+
+Example of Varnish Configuration Language (**VCL**)::
+
+      vcl 4.0;
+
+      backend default {
+	  .host = "127.0.0.1";
+	  .port = "8080";
+      }
+
+      sub vcl_recv {
+	  # Do request header transformations here.
+	  if (req.url ~ "^/admin") {
+	      return(pass);
+	  }
+      }
+
+.. container:: handout
+
+   Varnish is flexible because you can configure it and write your own caching policies in its Varnish Configuration Language (VCL).
+   VCL is a domain specific language based on C.
+   VCL is then translated to C code and compiled, therefore Varnish executes lightning fast.
+   Varnish has shown itself to work well both on large (and expensive) servers and tiny appliances.
 
 Varnish Distribution
 --------------------
