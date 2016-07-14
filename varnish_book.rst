@@ -266,8 +266,8 @@ What is it?
 Web performance and caching
 ---------------------------
 	
-	There are several ways to improve web performance, caching is among them.
-	Fetching something over the network is both slow and expensive: large responses require many roundtrips between the client and server, which delays when they are available and can be processed by the browser, and also incurs data costs for the visitor. As a result, the ability to cache and reuse previously fetched resources is a critical aspect of optimizing for performance.
+There are several ways to improve web performance, caching is among them.
+Fetching something over the network is both slow and expensive: large responses require many roundtrips between the client and server, which delays when they are available and can be processed by the browser, and also incurs data costs for the visitor. As a result, the ability to cache and reuse previously fetched resources is a critical aspect of optimizing for performance.
 	
 Why should you care about web performance?
 ------------------------------------------
