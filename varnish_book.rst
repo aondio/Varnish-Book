@@ -251,6 +251,33 @@ HTTP Properties
     However, responses from ``POST`` are very rarely treated as cacheable.
     [https://tools.ietf.org/html/rfc7231#section-4.2]
 
+Web performance
+===============
+
+What is it?
+-----------
+
+.. container:: handout
+
+	Web performance refers to the speed in which web pages are downloaded and displayed on the user's web browser.
+	Faster website download speeds have been shown to increase visitor retention and loyalty and user satisfaction, especially for users with slow internet connections and those on mobile devices. Web performance also leads to less data travelling across the web, which in turn lowers a website's power consumption and environmental impact.
+	
+
+Web performance and caching
+---------------------------
+	
+	There are several ways to improve web performance, caching is among them.
+	Fetching something over the network is both slow and expensive: large responses require many roundtrips between the client and server, which delays when they are available and can be processed by the browser, and also incurs data costs for the visitor. As a result, the ability to cache and reuse previously fetched resources is a critical aspect of optimizing for performance.
+	
+Why should you care about web performance?
+------------------------------------------
+
+- Abandonment rates: users tend to abandon the website they are browsing on if the response is not fast enough. This happens more often on phones and tablets.
+- Customer satisfaction and loyalty: The impact of poor performance on customer loyalty and returning visitors should also cause concern.
+- SEO: Google uses page speed as a ranking signal. This means that faster pages rank higher. By doing this, Google is rewarding better user experience with a higher ranking, and demoting poorer user experience. Having an performant site means that you are not unnecessarily dropping in search result position.
+
+
+	
 Introduction to Varnish Cache and Varnish Software
 ==================================================
 
