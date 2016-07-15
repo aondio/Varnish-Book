@@ -470,62 +470,7 @@ Example of Varnish Configuration Language (**VCL**)::
    VCL is then translated to C code and compiled, therefore Varnish executes lightning fast.
    Varnish has shown itself to work well both on large (and expensive) servers and tiny appliances.
 
-Varnish Distribution
---------------------
 
-Utility programs part of the Varnish distribution:
-
-- ``varnishd``
-- ``varnishtest``
-- ``varnishadm``
-- ``varnishlog``
-- ``varnishstat``
-- and more
-
-.. container:: handout
-
-   The Varnish distribution includes several utility programs that you will use in this course.
-   You will learn how to use these programs as you progress, but it is useful to have a brief introduction about them before we start.
-
-   .. varnishd
-
-   The central block of Varnish is the Varnish daemon ``varnishd``.
-   This daemon accepts HTTP requests from clients, sends requests to a backend, caches the returned objects and replies to the client request.
-
-   .. varnishtest
-
-   ``varnishtest`` is a script driven program used to test your Varnish installation.
-   ``varnishtest`` is very powerful because it allows you to create client mock-ups, fetch content from mock-up or real backends, interact with your actual Varnish configuration, and assert the expected behavior.
-   ``varnishtest`` is also very useful to learn more about the behavior of Varnish.
-
-   .. varnishadm
-
-   ``varnishadm`` controls a running Varnish instance.
-   The  ``varnishadm``  utility establishes a command line interface (CLI) connection to ``varnishd``.
-   This utility is the only one that may affect a running instance of Varnish.
-   You can use ``varnishadm`` to:
-
-   - start and stop ``varnishd``,
-   - change configuration parameters,
-   - reload the Varnish Configuration Language (VCL),
-   - view the most up-to-date documentation for parameters, and
-   - more.
-
-   .. varnishlog
-
-   The Varnish log provides large amounts of information, thus it is usually necessary to filter it.
-   For example, "show me only what matches X".
-   ``varnishlog`` does precisely that.
-
-   .. varnishstat
-
-   ``varnishstat`` is used to access **global counters**.
-   It provides overall statistics, e.g the number of total requests, number of objects, and more.
-   ``varnishstat`` is particularly useful when using it together with ``varnishlog`` to analyze your Varnish installation.
-
-   .. others
-
-   In addition, there are other utility programs such as ``varnishncsa``, ``varnishtop`` and ``varnishhist``.
 
 Vocabulary
 ----------
@@ -545,8 +490,9 @@ Vocabulary
 	References to objects in memory are kept in a hash tree.
 
 
-Exercise: Install Varnish
--------------------------
+
+Install Varnish
+===============
 
 - Install Varnish
 - Use packages provided by 
@@ -676,7 +622,62 @@ Test Varnish Using Apache as Backend
    The ``X-Varnish`` HTTP header field contains the Varnish Transaction ID (VXID) of the client request and if applicable, the VXID of the backend transaction that stored in cache the object delivered.
    ``X-Varnish`` is useful to find the correct log entries in the Varnish log.
    For a cache hit, ``X-Varnish`` contains both the ID of the current request and the ID of the request that populated the cache.
+Varnish Distribution
+--------------------
 
+Utility programs part of the Varnish distribution:
+
+- ``varnishd``
+- ``varnishtest``
+- ``varnishadm``
+- ``varnishlog``
+- ``varnishstat``
+- and more
+
+.. container:: handout
+
+   The Varnish distribution includes several utility programs that you will use in this course.
+   You will learn how to use these programs as you progress, but it is useful to have a brief introduction about them before we start.
+
+   .. varnishd
+
+   The central block of Varnish is the Varnish daemon ``varnishd``.
+   This daemon accepts HTTP requests from clients, sends requests to a backend, caches the returned objects and replies to the client request.
+
+   .. varnishtest
+
+   ``varnishtest`` is a script driven program used to test your Varnish installation.
+   ``varnishtest`` is very powerful because it allows you to create client mock-ups, fetch content from mock-up or real backends, interact with your actual Varnish configuration, and assert the expected behavior.
+   ``varnishtest`` is also very useful to learn more about the behavior of Varnish.
+
+   .. varnishadm
+
+   ``varnishadm`` controls a running Varnish instance.
+   The  ``varnishadm``  utility establishes a command line interface (CLI) connection to ``varnishd``.
+   This utility is the only one that may affect a running instance of Varnish.
+   You can use ``varnishadm`` to:
+
+   - start and stop ``varnishd``,
+   - change configuration parameters,
+   - reload the Varnish Configuration Language (VCL),
+   - view the most up-to-date documentation for parameters, and
+   - more.
+
+   .. varnishlog
+
+   The Varnish log provides large amounts of information, thus it is usually necessary to filter it.
+   For example, "show me only what matches X".
+   ``varnishlog`` does precisely that.
+
+   .. varnishstat
+
+   ``varnishstat`` is used to access **global counters**.
+   It provides overall statistics, e.g the number of total requests, number of objects, and more.
+   ``varnishstat`` is particularly useful when using it together with ``varnishlog`` to analyze your Varnish installation.
+
+   .. others
+
+   In addition, there are other utility programs such as ``varnishncsa``, ``varnishtop`` and ``varnishhist``.
 
 VCL Basics
 ==========
