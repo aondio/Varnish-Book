@@ -678,6 +678,31 @@ Utility programs part of the Varnish distribution:
    .. others
 
    In addition, there are other utility programs such as ``varnishncsa``, ``varnishtop`` and ``varnishhist``.
+   
+Log Data Tools
+--------------
+
+**Tools to display detailed log records:**
+
+- ``varnishlog`` is used to access request-specific data. It provides information about specific clients and requests.
+- ``varnishncsa`` displays Varnish access logs in NCSA Common log format.
+- ``varnishtest`` allows you to display log records and counters from your tests.
+
+**Statistical tools:**
+
+- ``varnishstat`` is used to access **global counters**.
+- ``varnishtop`` reads the Varnish log and presents a continuously updated list of the most commonly occurring log entries.
+- ``varnishhist`` reads the Varnish log and presents a continuously updated histogram showing the distribution of the last *N* requests by their processing.
+
+.. container:: handout
+
+   If you have multiple Varnish instances running in the same machine, you need to specify ``-n <name>`` both when starting Varnish and when using the tools.
+   This option is used to specify the instance of ``varnishd``, or the location of the shared memory log.
+   All tools (including ``varnishadm``) can also take a ``-n`` option.
+
+   In this course, we focus on the two most important tools: ``varnishlog`` and ``varnishstat``.
+   Unlike all other tools, ``varnishstat`` does not read entries from the Varnish log, but from global counters.
+   You can find more details about the other Varnish tools ``varnishncsa``, ``varnishtop`` and ``varnishhist`` in `Appendix B: Varnish Programs`_.
 
 VCL Basics
 ==========
